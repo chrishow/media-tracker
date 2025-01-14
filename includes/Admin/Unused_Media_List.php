@@ -213,13 +213,10 @@ class Unused_Media_List extends WP_List_Table {
 
             $acf_images = $wpdb->get_results( $acf_query );
             foreach ( $acf_images as $acf_image ) {
-                $unserialized = maybe_unserialize($acf_image->ID);
-                if(is_array($unserialized)) {
-                    // It is a gallery array, add all the images to the used_image_ids array
-                    $used_image_ids = array_merge($used_image_ids, $unserialized);
-                } else {
-                    $used_image_ids[] = $acf_image->ID;
-                }
+                // If the ACF field is a gallery, unserialize the value
+                // and add all the images in the gallery to the used_image_ids array
+                $ids = (array) maybe_unserialize( $acf_image->ID );
+                $used_image_ids = array_merge( $used_image_ids, $ids );
             }
         }
 

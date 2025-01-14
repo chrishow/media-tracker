@@ -77,10 +77,8 @@ class Media_Usage {
                 '%"type";s:7:"gallery"%'
             );
 
-            $acf_posts = $wpdb->get_results( $acf_query );
-            foreach ( $acf_posts as $acf_post ) {
-                $results[] = $acf_post;
-            }
+            $acf_posts = $wpdb->get_results($acf_query);
+            $results = array_merge($results, $acf_posts);
         }
 
         // Add logic to check for Elementor usage
