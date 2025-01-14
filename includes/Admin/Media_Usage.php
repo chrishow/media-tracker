@@ -65,12 +65,16 @@ class Media_Usage {
                 JOIN wp_posts acf ON pm2.meta_value = acf.post_name 
                 AND acf.post_type = 'acf-field'
                 JOIN wp_posts p ON pm.post_id = p.ID
-                WHERE pm.meta_value = %d
-                AND p.post_status = 'publish'
-                AND (acf.post_content LIKE '%\"type\";s:4:\"file\"%' 
-                OR acf.post_content LIKE '%\"type\";s:5:\"image\"%')
+                WHERE p.post_status = 'publish'
+                AND (
+                    pm.meta_value = %d
+                    OR (pm.meta_value LIKE %s
+                    AND acf.post_content LIKE %s)
+                )
                 ",
-                $attachment_id
+                $attachment_id,
+                '%'.$wpdb->esc_like($attachment_id).'%',
+                '%"type";s:7:"gallery"%'
             );
 
             $acf_posts = $wpdb->get_results( $acf_query );

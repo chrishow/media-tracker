@@ -203,14 +203,23 @@ class Unused_Media_List extends WP_List_Table {
                 JOIN wp_posts p ON pm.post_id = p.ID
                 AND p.post_status = 'publish'
                 AND pm.meta_value != ''
-                AND (acf.post_content LIKE '%\"type\";s:4:\"file\"%' 
-                OR acf.post_content LIKE '%\"type\";s:5:\"image\"%')
+                AND (
+                    acf.post_content LIKE '%\"type\";s:4:\"file\"%' 
+                    OR acf.post_content LIKE '%\"type\";s:5:\"image\"%'
+                    OR acf.post_content LIKE '%\"type\";s:7:\"gallery\"%'
+                )
                 "
             );
 
             $acf_images = $wpdb->get_results( $acf_query );
             foreach ( $acf_images as $acf_image ) {
-                $used_image_ids[] = $acf_image->ID;
+                $unserialized = maybe_unserialize($acf_image->ID);
+                if(is_array($unserialized)) {
+                    // It is a gallery array, add all the images to the used_image_ids array
+                    $used_image_ids = array_merge($used_image_ids, $unserialized);
+                } else {
+                    $used_image_ids[] = $acf_image->ID;
+                }
             }
         }
 
