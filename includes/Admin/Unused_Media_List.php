@@ -192,6 +192,28 @@ class Unused_Media_List extends WP_List_Table {
             }
         }
 
+        if(class_exists('ACF')) {
+            $acf_query = $wpdb->prepare("
+                SELECT DISTINCT pm.meta_value as ID
+                FROM wp_postmeta pm
+                JOIN wp_postmeta pm2 ON pm.post_id = pm2.post_id 
+                AND pm2.meta_key = concat('_', pm.meta_key)
+                JOIN wp_posts acf ON pm2.meta_value = acf.post_name 
+                AND acf.post_type = 'acf-field'
+                JOIN wp_posts p ON pm.post_id = p.ID
+                AND p.post_status = 'publish'
+                AND pm.meta_value != ''
+                AND (acf.post_content LIKE '%\"type\";s:4:\"file\"%' 
+                OR acf.post_content LIKE '%\"type\";s:5:\"image\"%')
+                "
+            );
+
+            $acf_images = $wpdb->get_results( $acf_query );
+            foreach ( $acf_images as $acf_image ) {
+                $used_image_ids[] = $acf_image->ID;
+            }
+        }
+
         // Ensure unique IDs.
         $used_image_ids = array_unique( $used_image_ids );
 

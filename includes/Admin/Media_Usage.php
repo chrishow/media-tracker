@@ -56,25 +56,27 @@ class Media_Usage {
         $results = $wpdb->get_results( $query );
 
         // Add logic to check for ACF usage
-        $acf_query = $wpdb->prepare("
-            SELECT DISTINCT pm.post_id as ID, p.post_title, p.post_type, pm.meta_key, pm.meta_value
-            FROM wp_postmeta pm
-            JOIN wp_postmeta pm2 ON pm.post_id = pm2.post_id 
-            AND pm2.meta_key = concat('_', pm.meta_key)
-            JOIN wp_posts acf ON pm2.meta_value = acf.post_name 
-            AND acf.post_type = 'acf-field'
-            JOIN wp_posts p ON pm.post_id = p.ID
-            WHERE pm.meta_value = %d
-            AND p.post_status = 'publish'
-            AND (acf.post_content LIKE '%\"type\";s:4:\"file\"%' 
-            OR acf.post_content LIKE '%\"type\";s:5:\"image\"%')
-            ",
-            $attachment_id
-        );
+        if(class_exists('ACF')) {
+            $acf_query = $wpdb->prepare("
+                SELECT DISTINCT pm.post_id as ID, p.post_title, p.post_type, pm.meta_key, pm.meta_value
+                FROM wp_postmeta pm
+                JOIN wp_postmeta pm2 ON pm.post_id = pm2.post_id 
+                AND pm2.meta_key = concat('_', pm.meta_key)
+                JOIN wp_posts acf ON pm2.meta_value = acf.post_name 
+                AND acf.post_type = 'acf-field'
+                JOIN wp_posts p ON pm.post_id = p.ID
+                WHERE pm.meta_value = %d
+                AND p.post_status = 'publish'
+                AND (acf.post_content LIKE '%\"type\";s:4:\"file\"%' 
+                OR acf.post_content LIKE '%\"type\";s:5:\"image\"%')
+                ",
+                $attachment_id
+            );
 
-        $acf_posts = $wpdb->get_results( $acf_query );        
-        foreach ( $acf_posts as $acf_post ) {
-            $results[] = $acf_post;
+            $acf_posts = $wpdb->get_results( $acf_query );
+            foreach ( $acf_posts as $acf_post ) {
+                $results[] = $acf_post;
+            }
         }
 
         // Add logic to check for Elementor usage
